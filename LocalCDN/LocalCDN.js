@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         LocalCDN by NIGHTZNERO
-// @namespace    http://github.com/NIGHTZNERO
+// @namespace    https://github.com/NIGHTZNERO
 // @author       NIGHTZNERO
 // @description  UserScript that emulates Content Delivery Networks to improve your online privacy. It intercepts traffic, finds supported resources locally, and injects them into the environment
 // @version      1.0
