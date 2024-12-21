@@ -3,7 +3,7 @@
 // @name S(hr)impDownloader
 // @namespace https://github.com/nightznero
 // @author NIGHTZNERO
-// @description Downloads images and videos from posts
+// @description Downloads images and videos from posts, Created by NIGHTZNERO
 // @version 2.9.9
 // @updateURL https://github.com/nightznero/NIGHTZNERO-UserScripts/raw/main/SimpDownloader/build.user.js
 // @downloadURL https://github.com/nightznero/NIGHTZNERO-UserScripts/raw/main/SimpDownloader/build.user.js
