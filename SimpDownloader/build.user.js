@@ -5,6 +5,7 @@
 // @author NIGHTZNERO
 // @description Downloads images and videos from posts, Created by NIGHTZNERO
 // @version 2.9.9
+// @homepage https://github.com/nightznero
 // @updateURL https://github.com/nightznero/NIGHTZNERO-UserScripts/raw/main/SimpDownloader/build.user.js
 // @downloadURL https://github.com/nightznero/NIGHTZNERO-UserScripts/raw/main/SimpDownloader/build.user.js
 // @icon https://simp4.host.church/simpcityIcon192.png
