@@ -4,8 +4,7 @@
 // @namespace https://github.com/nightznero
 // @author NIGHTZNERO
 // @description Downloads images and videos from posts, Created by NIGHTZNERO
-// @version 2.9.9
-// @homepage https://github.com/nightznero
+// @version 3.3
 // @updateURL https://github.com/nightznero/NIGHTZNERO-UserScripts/raw/main/SimpDownloader/build.user.js
 // @downloadURL https://github.com/nightznero/NIGHTZNERO-UserScripts/raw/main/SimpDownloader/build.user.js
 // @icon https://simp4.host.church/simpcityIcon192.png
@@ -23,14 +22,15 @@
 // @connect boxcloud.com
 // @connect kemono.su
 // @connect github.com
-// @connect bunkr.*
 // @connect big-taco-1img.bunkr.ru
 // @connect i-pizza.bunkr.ru
+// @connect bunkr.*
 // @connect bunkr.ac
 // @connect bunkr.ax
 // @connect bunkr.black
 // @connect bunkr.cat
 // @connect bunkr.ci
+// @connect bunkr.cr
 // @connect bunkr.fi
 // @connect bunkr.is
 // @connect bunkr.media
@@ -51,6 +51,7 @@
 // @connect bunkrrr.*
 // @connect bunkrrr.org
 // @connect bunkr-cache.se
+// @connect mlk-bk.cdn.gigachad-cdn.ru
 // @connect cyberdrop.*
 // @connect cyberdrop.me
 // @connect cyberdrop.cc
@@ -58,8 +59,10 @@
 // @connect cyberdrop.cloud
 // @connect cyberdrop.nl
 // @connect cyberdrop.to
+// @connect cyberfile.*
 // @connect cyberfile.su
 // @connect cyberfile.me
+// @connect saint2.*
 // @connect saint2.su
 // @connect saint2.pk
 // @connect saint2.cr
@@ -516,7 +519,7 @@ const h = {
      * @returns {Promise<unknown>}
      */
         get: (url, callbacks = {}, headers = {}, responseType = 'document') => {
-            return h.promise(resolve => resolve(h.http.base('GET', url, callbacks, headers, {}, responseType)));
+            return h.promise(resolve => resolve(h.http.base('GET', url, callbacks, headers, null, responseType)));
         },
         /**
      * @param url
@@ -1437,10 +1440,10 @@ const hosts = [
     ['Redgifs:video', [/!!redgifs.com(\/|\\\/)ifr.*?(?="|&quot;)/]],
     ['Bunkr:',
         [
-            /!!(?<=href=")https:\/\/((stream|cdn(\d+)?)\.)?bunkrr?r?\.(ac|ax|black|cat|ci|fi|is|media|nu|pk|ph|ps|red|ru|se|si|site|sk|ws|ru|su|org)(?!(\/a\/)).*?(?=")|(?<=(href=")|(src="))https:\/\/((i|cdn|i-pizza|big-taco-1img)(\d+)?\.)?bunkrr?r?\.(ac|ax|black|cat|ci|fi|is|media|nu|pk|ph|ps|red|ru|se|si|site|sk|ws|ru|su|org)(?!(\/a\/))\/(v\/)?.*?(?=")/,
+            /!!(?<=href=")https:\/\/((stream|cdn(\d+)?)\.)?bunkrr?r?\.(ac|ax|black|cat|ci|cr|fi|is|media|nu|pk|ph|ps|red|ru|se|si|site|sk|ws|ru|su|org)(?!(\/a\/)).*?(?=")|(?<=(href=")|(src="))https:\/\/((i|cdn|i-pizza|big-taco-1img)(\d+)?\.)?bunkrr?r?\.(ac|ax|black|cat|ci|cr|fi|is|media|nu|pk|ph|ps|red|ru|se|si|site|sk|ws|ru|su|org)(?!(\/a\/))\/(v\/)?.*?(?=")/,
         ]
     ],
-    ['Bunkr:Albums', [/bunkrr?r?\.(ac|ax|black|cat|ci|fi|is|media|nu|pk|ph|ps|red|ru|se|si|site|sk|ws|ru|su|org)\/a\//]],
+    ['Bunkr:Albums', [/bunkrr?r?\.(ac|ax|black|cat|ci|cr|fi|is|media|nu|pk|ph|ps|red|ru|se|si|site|sk|ws|ru|su|org)\/a\//]],
     ['Give.xxx:Profiles', [/give.xxx\/[~an@_-]+/]],
     ['Pixeldrain:', [/(focus\.)?pixeldrain.com\/[lu]\//]],
     ['Gofile:', [/gofile.io\/d/]],
@@ -1776,175 +1779,78 @@ const resolvers = [
         },
     ],
     [
-        [/((stream|cdn(\d+)?)\.)?bunkrr?r?\.(ac|ax|black|cat|ci|fi|is|media|nu|pk|ph|ps|red|ru|se|si|site|sk|ws|ru|su|org).*?\.|((i|cdn)(\d+)?\.)?bunkrr?r?\.(ac|ax|black|cat|ci|fi|is|media|nu|pk|ph|ps|red|ru|se|si|site|sk|ws|ru|su|org)\/(v\/)?/i, /:!bunkrr?r?\.(ac|ax|black|cat|ci|fi|is|media|nu|pk|ph|ps|red|ru|se|si|site|sk|ws|ru|su|org)\/a\//],
+        [/((stream|cdn(\d+)?)\.)?bunkrr?r?\.(ac|ax|black|cat|ci|cr|fi|is|media|nu|pk|ph|ps|red|ru|se|si|site|sk|ws|su|org).*?\.|((i|cdn)(\d+)?\.)?bunkrr?r?\.(ac|ax|black|cat|ci|cr|fi|is|media|nu|pk|ph|ps|red|ru|se|si|site|sk|ws|su|org)\/(v\/)?/i, /:!bunkrr?r?\.(ac|ax|black|cat|ci|cr|fi|is|media|nu|pk|ph|ps|red|ru|se|si|site|sk|ws|su|org)\/a\//],
         async (url, http) => {
-            const extension = h.ext(url);
-            const filename = h.basename(url);
-            let matches = /bunkr\.\w+\/i/i.exec(url);
+            try {
+                const { pathname } = new URL(url);
 
-            const isImage = matches && matches.length;
-            const retrieveImageFromURL = matches && matches.length;
+                const segments = pathname.split('/').filter(Boolean);
+                const index = segments.findIndex(s => ['f','v','d'].includes(s));
+                const id = index > -1 ? segments.slice(index + 1).join('/') : segments.pop();
 
-            let domain = null;
+                const response = await http.post(
+                    `https://bunkr.cr/api/vs`,
+                    JSON.stringify({ slug: id }),
+                    {},
+                    { 'Content-Type': 'application/json' }
+                );
 
-            if (!matches || !matches.length) {
-                matches = /(?<=\/i-)\w+/.exec(url);
+                const data = JSON.parse(response.source);
 
-                if (matches && matches.length) {
-                    domain = matches[0];
+                let finalURL;
+                if (!data.encrypted) {
+                    finalURL = data.url;
+                } else {
+                    const binaryString = atob(data.url);
+                    const keyBytes = new TextEncoder().encode(`SECRET_KEY_${Math.floor(data.timestamp / 3600)}`);
+                    finalURL = Array.from(binaryString)
+                        .map((char, i) => String.fromCharCode(char.charCodeAt(0) ^ keyBytes[i % keyBytes.length]))
+                        .join('');
                 }
+
+                return finalURL;
+            } catch (error) {
+                console.error(error.message)
             }
-
-            const isImagExtension = settings.extensions.image.some(e => e.substring(1).toLowerCase() === extension.toLowerCase());
-
-            // The file is an image.
-            if (isImage || isImagExtension) {
-                console.log('Image');
-                if (isImagExtension) {
-                    return `https://i-${domain}.bunkr.ru/${filename}.${extension}`;
-                }
-
-                if (retrieveImageFromURL) {
-                    const { dom } = await http.get(url);
-
-                    return dom?.querySelector('.lightgallery > img')?.getAttribute('src');
-                }
-            }
-
-            // The file is a document or an archive.
-            else {
-                console.log('Doc');
-                const { dom } = await http.get(url);
-                const downloadPageURL = dom?.querySelector(`a[href^="https://get.bunkr"]`)?.href;
-                console.log(downloadPageURL);
-
-                if (!downloadPageURL) {
-                    return null;
-                }
-
-                const { dom: downloadPageDOM } = await http.get(downloadPageURL);
-
-                return downloadPageDOM?.querySelector('a')?.href;
-            }
-
-            const { dom } = await http.get(url);
-
-            return dom?.querySelector('source')?.getAttribute('src');
         },
     ],
     [
-        [/bunkrr?r?\.(ac|ax|black|cat|ci|fi|is|media|nu|pk|ph|ps|red|ru|se|si|site|sk|ws|ru|su|org)\/a\//],
-        async (url, http, _, __, postSettings) => {
+        [/bunkrr?r?\.(ac|ax|black|cat|ci|cr|fi|is|media|nu|pk|ph|ps|red|ru|se|si|site|sk|ws|su|org)\/a\//],
+        async (url, http, _, __) => {
             const { dom, source } = await http.get(url);
-
             const containers = dom.querySelectorAll('.grid-images > div');
-
             const files = [];
 
             for (const f of containers) {
-                const a = f.querySelector('a');
-                const img = f.querySelector('img');
+                const a = f.querySelector('a[class="after:absolute after:z-10 after:inset-0"]');
+                if (!a) continue;
 
-                const href = a?.href;
+                const href = a.getAttribute('href');
+                if (!href || !href.includes('/f/')) continue;
 
-                const extension = f.getElementsByTagName('p')[0].innerHTML.split('.').pop();
-                const filename = img?.getAttribute('src').split("/").pop().split('.').slice(0, -1).join(".");
-                const matches = /(?<=\/i-)\w+/.exec(img?.getAttribute('src'));
+                const id = href.split('/f/')[1];
 
-                let domain = null;
+                const response = await http.post(
+                    `https://bunkr.cr/api/vs`,
+                    JSON.stringify({ slug: id }),
+                    {},
+                    { 'Content-Type': 'application/json' }
+                );
 
-                if (matches && matches.length) {
-                    domain = matches[0];
+                const data = JSON.parse(response.source);
+
+                let finalURL;
+                if (!data.encrypted) {
+                    finalURL = data.url;
+                } else {
+                    const binaryString = atob(data.url);
+                    const keyBytes = new TextEncoder().encode(`SECRET_KEY_${Math.floor(data.timestamp / 3600)}`);
+                    finalURL = Array.from(binaryString)
+                        .map((char, i) => String.fromCharCode(char.charCodeAt(0) ^ keyBytes[i % keyBytes.length]))
+                        .join('');
                 }
 
-                // The file is an image.
-                if (domain && settings.extensions.image.some(e => e.substring(1).toLowerCase() === extension.toLowerCase())) {
-                    files.push(`https://i-${domain}.bunkr.ru/${filename}.${extension}`);
-
-                    continue;
-                }
-                // The file is a document or an archive.
-                if (
-                    href &&
-                    (
-                        settings.extensions.documents.some(e => e.substring(1).toLowerCase() === extension.toLowerCase()) ||
-                        settings.extensions.compressed.some(e => e.substring(1).toLowerCase() === extension.toLowerCase())
-                    )
-                ) {
-                    const { dom } = await http.get(href);
-                    const downloadPageURL = dom?.querySelector(`a[href^="https://get.bunkr"]`)?.href;
-
-                    if (!downloadPageURL) {
-                        continue;
-                    }
-
-                    const { dom: downloadPageDOM } = await http.get(downloadPageURL);
-
-                    files.push(downloadPageDOM?.querySelector('a')?.href);
-
-                    continue;
-                }
-
-                // From this point on, we assume that the file is a video.
-                // Since it's a video, the domain regex on the image url has to be passed.
-                if (!domain) {
-                    continue;
-                }
-
-                // Start off without the cached url (bunkr-cache.se).
-
-                let resolvedURL = `https://${domain}.bunkr.ru/${filename}.${extension}`;
-
-                if (domain === "fries") {
-                    const { status, dom } = await http.get(a.href);
-                    resolvedURL = dom?.querySelector('source')?.getAttribute('src');
-                }
-
-                if (postSettings.verifyBunkrLinks) {
-                    let status = null;
-
-                    try {
-                        console.log(`Verifying: ${resolvedURL}`);
-
-                        await http.get(resolvedURL, {
-                            onResponseHeadersReceieved: ({ status: s, request }) => {
-                                status = s;
-                                if (request) {
-                                    request.abort();
-                                }
-                            }
-                        });
-
-                        console.log(status === 429 || status === 200 ? `File Exists: ${resolvedURL}` : `Verification Failed. Ignoring ${resolvedURL}`);
-                    } catch (e) {
-                        continue;
-                    }
-
-                    // The file was found. We'll ignore the error as the
-                    // concurrent downloads for Bunkr are fixed to a single download.
-                    if (status === 429) {
-                        files.push(resolvedURL);
-                        continue;
-                    }
-
-                    // Bail if the file's not found or there's a server error.
-                    if (status === 404 || status.toString().substring(0, 1) === '5') {
-                        continue;
-                    }
-
-                    // Try and pull the link from the video's source tag.
-                    if (status !== 200) {
-                        const { status, dom } = await http.get(a.href);
-                        resolvedURL = dom?.querySelector('source')?.getAttribute('src');
-                    }
-
-                    if (!resolvedURL) {
-                        continue;
-                    }
-                }
-
-                files.push(resolvedURL);
-
+                files.push(finalURL);
             }
 
             const infoContainer = dom.querySelector('h1');
@@ -1961,7 +1867,7 @@ const resolvers = [
                 folderName: albumName,
                 resolved: files.filter(file => file),
             };
-        },
+        }
     ],
     [
         [/give.xxx\//],
@@ -3241,20 +3147,6 @@ const addDownloadPageButton = () => {
     return downloadAllButton;
 };
 
-/**
- * @param postFooter
- */
-const registerPostReaction = postFooter => {
-    const hasReaction = postFooter.querySelector('.has-reaction');
-    if (!hasReaction) {
-        const reactionAnchor = postFooter.querySelector('.reaction--imageHidden');
-        if (reactionAnchor) {
-            reactionAnchor.setAttribute('href', reactionAnchor.getAttribute('href').replace('_id=1', '_id=33'));
-            reactionAnchor.click();
-        }
-    }
-};
-
 
 async function cyberdrop_helper(file) {
     let url_dl;
@@ -3515,6 +3407,14 @@ const selectedPosts = [];
                             } else {
                                 checkedPostCheckboxes.forEach(c => c.click());
                             }
+                        });
+                    });
+                },
+            });
+        }
+    });
+})();
+          }
                         });
                     });
                 },
